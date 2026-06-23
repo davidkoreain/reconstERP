@@ -200,45 +200,71 @@ export const DocOCRHub: React.FC = () => {
     alert('구글 API 설정 정보가 안전하게 로컬 환경에 저장되었습니다.');
   };
 
+  const isMockFile = (fileName: string): boolean => {
+    const lower = fileName.toLowerCase();
+    return (
+      lower.includes('2026_pacific_med_ledger') ||
+      lower.includes('yeouido_asset_valuation_report') ||
+      lower.includes('이조원') ||
+      lower.includes('하이터치') ||
+      lower.includes('hightouch')
+    );
+  };
+
   const populateFormStates = (doc: { fileName: string; docType?: string; parsedData?: any }) => {
     const type = doc.docType || 'PropertyLedger';
     const fileNameLower = doc.fileName.toLowerCase();
     const isHighTouch = fileNameLower.includes('hightouch') || fileNameLower.includes('하이터치');
+    const isMock = isMockFile(doc.fileName);
     
     if (type === 'CorporateRegistry') {
-      const corp = doc.parsedData?.corporationFound || {
+      const corp = doc.parsedData?.corporationFound || (isMock ? {
         name: isHighTouch ? '주식회사 하이터치 솔루션' : '주식회사 이조원',
         representative: isHighTouch ? '김하이터치' : '이조원',
         capital: isHighTouch ? 300000000 : 500000000,
         regNumber: isHighTouch ? '110111-8765432' : '110111-2345678',
         bizNumber: isHighTouch ? '120-86-54321' : '104-81-12345',
         address: isHighTouch ? '서울특별시 마포구 마포대로 12' : '서울특별시 중구 을지로 88'
-      };
+      } : {
+        name: '',
+        representative: '',
+        capital: 0,
+        regNumber: '',
+        bizNumber: '',
+        address: ''
+      });
       setEditCorpName(corp.name || '');
       setEditRepresentative(corp.representative || '');
-      setEditCapital(String(corp.capital || ''));
+      setEditCapital(corp.capital ? String(corp.capital) : '');
       setEditRegNumber(corp.regNumber || '');
       setEditBizNumber(corp.bizNumber || '');
       setEditCorpAddress(corp.address || '');
     } else if (type === 'FinancialStatement') {
-      const corp = doc.parsedData?.corporationFound || {
+      const corp = doc.parsedData?.corporationFound || (isMock ? {
         name: isHighTouch ? '주식회사 하이터치 솔루션' : '주식회사 이조원',
         revenue: isHighTouch ? 980000000 : 1450000000,
         netIncome: isHighTouch ? 110000000 : 220000000,
         totalAssets: isHighTouch ? 4100000000 : 5500000000,
         totalLiabilities: isHighTouch ? 1500000000 : 1800000000,
         fiscalYear: '2025-12-31'
-      };
+      } : {
+        name: '',
+        revenue: 0,
+        netIncome: 0,
+        totalAssets: 0,
+        totalLiabilities: 0,
+        fiscalYear: ''
+      });
       setEditCorpName(corp.name || '');
-      setEditRevenue(String(corp.revenue || ''));
-      setEditNetIncome(String(corp.netIncome || ''));
-      setEditTotalAssets(String(corp.totalAssets || ''));
-      setEditTotalLiabilities(String(corp.totalLiabilities || ''));
-      setEditFiscalYear(corp.fiscalYear || '2025-12-31');
+      setEditRevenue(corp.revenue ? String(corp.revenue) : '');
+      setEditNetIncome(corp.netIncome ? String(corp.netIncome) : '');
+      setEditTotalAssets(corp.totalAssets ? String(corp.totalAssets) : '');
+      setEditTotalLiabilities(corp.totalLiabilities ? String(corp.totalLiabilities) : '');
+      setEditFiscalYear(corp.fiscalYear || '');
       const matched = corporations.find(c => c.name.includes(corp.name || '') || (corp.name || '').includes(c.name));
       setEditTargetCorpId(matched ? matched.id : corporations[0]?.id || '');
     } else {
-      const prop = doc.parsedData?.propertiesFound?.[0] || {
+      const prop = doc.parsedData?.propertiesFound?.[0] || (isMock ? {
         name: isHighTouch ? '하이터치 마포 빌딩 2층' : '서초 테크노타워 4층',
         address: isHighTouch ? '서울특별시 마포구 마포대로 15' : '서울특별시 서초구 서초대로 324 (테크노타워)',
         acquisitionCost: isHighTouch ? 4200000000 : 3500000000,
@@ -258,15 +284,35 @@ export const DocOCRHub: React.FC = () => {
         creditorName: isHighTouch ? '하나은행' : '신한은행',
         maxDebtLimit: isHighTouch ? 2160000000 : 1680000000,
         debtorName: isHighTouch ? '주식회사 하이터치 솔루션' : '주식회사 이조원'
-      };
-      setEditName(prop.name);
-      setEditAddress(prop.address);
-      setEditCost(String(prop.acquisitionCost));
-      setEditValuation(String(prop.valuation));
-      setEditMortgage(String(prop.mortgageAmount));
-      setEditRent(String(prop.monthlyRent));
-      setEditMaintenance(String(prop.monthlyMaintenance));
-      setEditTenant(prop.tenantName);
+      } : {
+        name: '',
+        address: '',
+        acquisitionCost: 0,
+        valuation: 0,
+        mortgageAmount: 0,
+        monthlyRent: 0,
+        monthlyMaintenance: 0,
+        tenantName: '',
+        ownerCorpId: '',
+        purpose: '',
+        area: 0,
+        structure: '',
+        acquisitionDate: '',
+        acquisitionReason: '',
+        ownershipShare: '',
+        ownershipRestrictions: '',
+        creditorName: '',
+        maxDebtLimit: 0,
+        debtorName: ''
+      });
+      setEditName(prop.name || '');
+      setEditAddress(prop.address || '');
+      setEditCost(prop.acquisitionCost ? String(prop.acquisitionCost) : '');
+      setEditValuation(prop.valuation ? String(prop.valuation) : '');
+      setEditMortgage(prop.mortgageAmount ? String(prop.mortgageAmount) : '');
+      setEditRent(prop.monthlyRent ? String(prop.monthlyRent) : '');
+      setEditMaintenance(prop.monthlyMaintenance ? String(prop.monthlyMaintenance) : '');
+      setEditTenant(prop.tenantName || '');
       setEditOwnerCorpId(prop.ownerCorpId || corporations[0]?.id || '');
 
       setEditPurpose(prop.purpose || '');
@@ -349,14 +395,15 @@ export const DocOCRHub: React.FC = () => {
       const type = doc?.docType || 'PropertyLedger';
       const fileNameLower = doc?.fileName.toLowerCase() || '';
       const isHighTouch = fileNameLower.includes('hightouch') || fileNameLower.includes('하이터치');
+      const isMock = doc ? isMockFile(doc.fileName) : false;
 
       if (type === 'CorporateRegistry') {
-        const corpName = isHighTouch ? '주식회사 하이터치 솔루션' : '주식회사 이조원';
-        const rep = isHighTouch ? '김하이터치' : '이조원';
-        const cap = isHighTouch ? '300000000' : '500000000';
-        const reg = isHighTouch ? '110111-8765432' : '110111-2345678';
-        const biz = isHighTouch ? '120-86-54321' : '104-81-12345';
-        const addr = isHighTouch ? '서울특별시 마포구 마포대로 12' : '서울특별시 중구 을지로 88';
+        const corpName = isMock ? (isHighTouch ? '주식회사 하이터치 솔루션' : '주식회사 이조원') : '';
+        const rep = isMock ? (isHighTouch ? '김하이터치' : '이조원') : '';
+        const cap = isMock ? (isHighTouch ? '300000000' : '500000000') : '';
+        const reg = isMock ? (isHighTouch ? '110111-8765432' : '110111-2345678') : '';
+        const biz = isMock ? (isHighTouch ? '120-86-54321' : '104-81-12345') : '';
+        const addr = isMock ? (isHighTouch ? '서울특별시 마포구 마포대로 12' : '서울특별시 중구 을지로 88') : '';
 
         setEditCorpName(corpName);
         setEditRepresentative(rep);
@@ -365,12 +412,12 @@ export const DocOCRHub: React.FC = () => {
         setEditBizNumber(biz);
         setEditCorpAddress(addr);
       } else if (type === 'FinancialStatement') {
-        const corpName = isHighTouch ? '주식회사 하이터치 솔루션' : '주식회사 이조원';
-        const rev = isHighTouch ? '980000000' : '1450000000';
-        const net = isHighTouch ? '110000000' : '220000000';
-        const ast = isHighTouch ? '4100000000' : '5500000000';
-        const lia = isHighTouch ? '1500000000' : '1800000000';
-        const fy = '2025-12-31';
+        const corpName = isMock ? (isHighTouch ? '주식회사 하이터치 솔루션' : '주식회사 이조원') : '';
+        const rev = isMock ? (isHighTouch ? '980000000' : '1450000000') : '';
+        const net = isMock ? (isHighTouch ? '110000000' : '220000000') : '';
+        const ast = isMock ? (isHighTouch ? '4100000000' : '5500000000') : '';
+        const lia = isMock ? (isHighTouch ? '1500000000' : '1800000000') : '';
+        const fy = isMock ? '2025-12-31' : '';
 
         setEditCorpName(corpName);
         setEditRevenue(rev);
@@ -382,25 +429,25 @@ export const DocOCRHub: React.FC = () => {
         setEditTargetCorpId(matched ? matched.id : corporations[0]?.id || '');
       } else {
         // PropertyLedger
-        let pName = isHighTouch ? '하이터치 마포 빌딩 2층' : '서초 테크노타워 4층';
-        let addr = isHighTouch ? '서울특별시 마포구 마포대로 15' : '서울특별시 서초구 서초대로 324 (테크노타워)';
-        let cost = isHighTouch ? '4200000000' : '3500000000';
-        let valuation = isHighTouch ? '4500000000' : '3800000000';
-        let mortgage = isHighTouch ? '1800000000' : '1400000000';
-        let rent = isHighTouch ? '16000000' : '12000000';
-        let maint = isHighTouch ? '2500000' : '2200000';
-        let tenant = isHighTouch ? '대원 아이씨티' : '네오 소프트랩';
+        let pName = isMock ? (isHighTouch ? '하이터치 마포 빌딩 2층' : '서초 테크노타워 4층') : '';
+        let addr = isMock ? (isHighTouch ? '서울특별시 마포구 마포대로 15' : '서울특별시 서초구 서초대로 324 (테크노타워)') : '';
+        let cost = isMock ? (isHighTouch ? '4200000000' : '3500000000') : '';
+        let valuation = isMock ? (isHighTouch ? '4500000000' : '3800000000') : '';
+        let mortgage = isMock ? (isHighTouch ? '1800000000' : '1400000000') : '';
+        let rent = isMock ? (isHighTouch ? '16000000' : '12000000') : '';
+        let maint = isMock ? (isHighTouch ? '2500000' : '2200000') : '';
+        let tenant = isMock ? (isHighTouch ? '대원 아이씨티' : '네오 소프트랩') : '';
 
-        let purpose = isHighTouch ? '업무시설 (사무소)' : '근린생활시설 (소매점)';
-        let area = isHighTouch ? '245.5' : '120.8';
-        let structure = '철근콘크리트 구조';
-        let acqDate = isHighTouch ? '2024-05-18' : '2023-11-20';
-        let acqReason = '매매';
-        let ownShare = '1/1 (단독소유)';
-        let ownRestr = isHighTouch ? '가압류 (서울마포지방법원)' : '없음';
-        let creditor = isHighTouch ? '하나은행' : '신한은행';
-        let maxLimit = isHighTouch ? '2160000000' : '1680000000';
-        let debtor = isHighTouch ? '주식회사 하이터치 솔루션' : '주식회사 이조원';
+        let purpose = isMock ? (isHighTouch ? '업무시설 (사무소)' : '근린생활시설 (소매점)') : '';
+        let area = isMock ? (isHighTouch ? '245.5' : '120.8') : '';
+        let structure = isMock ? '철근콘크리트 구조' : '';
+        let acqDate = isMock ? (isHighTouch ? '2024-05-18' : '2023-11-20') : '';
+        let acqReason = isMock ? '매매' : '';
+        let ownShare = isMock ? '1/1 (단독소유)' : '';
+        let ownRestr = isMock ? (isHighTouch ? '가압류 (서울마포지방법원)' : '없음') : '';
+        let creditor = isMock ? (isHighTouch ? '하나은행' : '신한은행') : '';
+        let maxLimit = isMock ? (isHighTouch ? '2160000000' : '1680000000') : '';
+        let debtor = isMock ? (isHighTouch ? '주식회사 하이터치 솔루션' : '주식회사 이조원') : '';
 
         setEditName(pName);
         setEditAddress(addr);
@@ -410,7 +457,7 @@ export const DocOCRHub: React.FC = () => {
         setEditRent(rent);
         setEditMaintenance(maint);
         setEditTenant(tenant);
-        setEditOwnerCorpId(isHighTouch ? 'corp-2' : 'corp-1');
+        setEditOwnerCorpId(isMock ? (isHighTouch ? 'corp-2' : 'corp-1') : corporations[0]?.id || '');
 
         setEditPurpose(purpose);
         setEditArea(area);

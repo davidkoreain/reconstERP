@@ -131,7 +131,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // One-time cleanup to clear dummy data from browser session
   useEffect(() => {
-    const cleared = localStorage.getItem('rehab_dummy_cleared_v2');
+    const cleared = localStorage.getItem('rehab_dummy_cleared_v5');
     if (!cleared) {
       localStorage.removeItem('rehab_properties');
       localStorage.removeItem('rehab_expenses');
@@ -140,7 +140,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.removeItem('rehab_approvals');
       localStorage.removeItem('rehab_ocr');
       localStorage.removeItem('rehab_corporations');
-      localStorage.setItem('rehab_dummy_cleared_v2', 'true');
+      localStorage.setItem('rehab_dummy_cleared_v5', 'true');
       
       setProperties([]);
       setExpenses([]);
@@ -416,13 +416,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const fileNameLower = doc.fileName.toLowerCase();
       const isHighTouch = fileNameLower.includes('hightouch') || fileNameLower.includes('하이터치');
       
+      // Check if it's one of the predefined mock files
+      const isMock = 
+        fileNameLower.includes('2026_pacific_med_ledger') ||
+        fileNameLower.includes('yeouido_asset_valuation_report') ||
+        fileNameLower.includes('이조원') ||
+        fileNameLower.includes('하이터치') ||
+        fileNameLower.includes('hightouch');
+
       // Determine what to parse based on selected docType
       let parsedData: OCRDocument['parsedData'] = {};
       const type = doc.docType || 'PropertyLedger';
       
       if (type === 'CorporateRegistry') {
         parsedData = {
-          corporationFound: isHighTouch ? {
+          corporationFound: isMock ? (isHighTouch ? {
             name: '주식회사 하이터치 솔루션',
             regNumber: '110111-8765432',
             bizNumber: '120-86-54321',
@@ -436,11 +444,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             representative: '이조원',
             address: '서울특별시 중구 을지로 88',
             capital: 500000000
+          }) : {
+            name: '',
+            regNumber: '',
+            bizNumber: '',
+            representative: '',
+            address: '',
+            capital: 0
           }
         };
       } else if (type === 'FinancialStatement') {
         parsedData = {
-          corporationFound: isHighTouch ? {
+          corporationFound: isMock ? (isHighTouch ? {
             name: '주식회사 하이터치 솔루션',
             regNumber: '110111-8765432',
             bizNumber: '120-86-54321',
@@ -464,13 +479,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             totalAssets: 5500000000,
             totalLiabilities: 1800000000,
             fiscalYear: '2025-12-31'
+          }) : {
+            name: '',
+            regNumber: '',
+            bizNumber: '',
+            representative: '',
+            address: '',
+            capital: 0,
+            revenue: 0,
+            netIncome: 0,
+            totalAssets: 0,
+            totalLiabilities: 0,
+            fiscalYear: ''
           }
         };
       } else {
         // PropertyLedger
         parsedData = {
           propertiesFound: [
-            {
+            isMock ? {
               name: isHighTouch ? '하이터치 마포 빌딩 2층' : '서초 테크노타워 4층',
               address: isHighTouch ? '서울특별시 마포구 마포대로 15' : '서울특별시 서초구 서초대로 324 (테크노타워)',
               acquisitionCost: isHighTouch ? 4200000000 : 3500000000,
@@ -480,8 +507,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               monthlyMaintenance: isHighTouch ? 2500000 : 2200000,
               tenantName: isHighTouch ? '대원 아이씨티' : '네오 소프트랩',
               ownerCorpId: isHighTouch ? 'corp-2' : 'corp-1',
-              
-              // Register Fields
               purpose: isHighTouch ? '업무시설 (사무소)' : '근린생활시설 (소매점)',
               area: isHighTouch ? 245.5 : 120.8,
               structure: '철근콘크리트 구조',
@@ -492,6 +517,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               creditorName: isHighTouch ? '하나은행' : '신한은행',
               maxDebtLimit: isHighTouch ? 2160000000 : 1680000000,
               debtorName: isHighTouch ? '주식회사 하이터치 솔루션' : '주식회사 이조원'
+            } : {
+              name: '',
+              address: '',
+              acquisitionCost: 0,
+              valuation: 0,
+              mortgageAmount: 0,
+              monthlyRent: 0,
+              monthlyMaintenance: 0,
+              tenantName: '',
+              ownerCorpId: '',
+              purpose: '',
+              area: 0,
+              structure: '',
+              acquisitionDate: '',
+              acquisitionReason: '',
+              ownershipShare: '',
+              ownershipRestrictions: '',
+              creditorName: '',
+              maxDebtLimit: 0,
+              debtorName: ''
             }
           ]
         };
