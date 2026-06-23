@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from './context/AppContext';
+import { useAuth } from './context/AuthContext';
 import Dashboard from './components/Dashboard';
 import PropertyManager from './components/PropertyManager';
 import CorporateLedger from './components/CorporateLedger';
@@ -10,21 +11,23 @@ import ERPApproval from './components/ERPApproval';
 import DocOCRHub from './components/DocOCRHub';
 
 import { 
-  LayoutDashboard, 
-  Building2, 
-  Calendar, 
-  CreditCard, 
-  Users, 
-  FileCheck, 
+  LayoutDashboard,
+  Building2,
+  Calendar,
+  CreditCard,
+  Users,
+  FileCheck,
   CloudLightning,
   ChevronRight,
   ShieldCheck,
   UserCheck,
-  Landmark
+  Landmark,
+  LogOut
 } from 'lucide-react';
 
 export const App: React.FC = () => {
   const { currentUser, setCurrentUser, users } = useApp();
+  const { signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'properties' | 'corporations' | 'expenses' | 'calendar' | 'investors' | 'approvals' | 'ocr'>('dashboard');
 
   const navigationItems = [
@@ -157,17 +160,17 @@ export const App: React.FC = () => {
         <header className="header">
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'white' }}>{getTabLabel()}</h2>
 
-          {/* User selector for sandbox review */}
+          {/* User selector + logout */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <span style={{ fontSize: '0.75rem', color: 'hsl(var(--text-secondary))', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
               <UserCheck size={14} /> ERP 계정 전환:
             </span>
 
-            <select 
+            <select
               className="form-select"
-              style={{ 
-                padding: '0.35rem 1.75rem 0.35rem 0.75rem', 
-                fontSize: '0.75rem', 
+              style={{
+                padding: '0.35rem 1.75rem 0.35rem 0.75rem',
+                fontSize: '0.75rem',
                 width: 'auto',
                 backgroundColor: 'hsl(var(--bg-tertiary))',
                 borderRadius: '4px',
@@ -183,6 +186,24 @@ export const App: React.FC = () => {
                 <option key={u.id} value={u.id}>{u.name} ({u.position})</option>
               ))}
             </select>
+
+            <button
+              onClick={signOut}
+              title="로그아웃"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.35rem',
+                padding: '0.35rem 0.75rem',
+                backgroundColor: 'transparent',
+                border: '1px solid hsl(var(--border-color))',
+                borderRadius: '4px',
+                color: 'hsl(var(--text-secondary))',
+                cursor: 'pointer',
+                fontSize: '0.75rem',
+                transition: 'all 0.15s',
+              }}
+            >
+              <LogOut size={13} /> 로그아웃
+            </button>
           </div>
         </header>
 
