@@ -108,17 +108,7 @@ export const DocOCRHub: React.FC = () => {
 
   const selectedDoc = ocrDocuments.find(d => d.id === selectedId);
 
-  // Dynamic Script Loader for Google Identity Services
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
+
 
   // Update explorer items when offline breadcrumbs change
   useEffect(() => {
@@ -169,6 +159,13 @@ export const DocOCRHub: React.FC = () => {
   const handleConnectDrive = () => {
     if (!googleClientId) {
       alert('먼저 우측의 개발자 설정 패널에서 구글 클라이언트 ID를 등록해 주세요.');
+      return;
+    }
+
+    // Check if google SDK is loaded
+    // @ts-ignore
+    if (typeof google === 'undefined' || !google.accounts) {
+      alert('구글 인증 라이브러리(GSI)가 로드되지 않았습니다. 인터넷 연결 상태를 확인하시거나 브라우저 광고 차단기(AdBlock)를 비활성화한 후 다시 시도해 주세요.');
       return;
     }
 
@@ -546,7 +543,7 @@ export const DocOCRHub: React.FC = () => {
             <li>[Google Cloud Console](https://console.cloud.google.com)에 로그인합니다.</li>
             <li><strong>Google Drive API</strong>를 활성화합니다.</li>
             <li><strong>Credentials</strong>에서 <strong>API Key</strong>와 <strong>OAuth Client ID</strong>를 발급받습니다.</li>
-            <li>OAuth 생성 시 승인된 자바스크립트 원본에 `http://localhost:5173`을 등록하세요.</li>
+            <li>OAuth 생성 시 승인된 자바스크립트 원본(Authorized JavaScript Origins)에 <code>{window.location.origin}</code> 및 <code>http://localhost:5173</code>을 모두 등록해 주세요.</li>
             <li>하단의 키 설정 카드에 저장하신 후 로그인 연동을 진행하면 실제 구글 드라이브 폴더 조회가 활성화됩니다.</li>
           </ol>
         </div>
