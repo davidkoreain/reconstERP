@@ -133,6 +133,12 @@ export const DocOCRHub: React.FC = () => {
         }
       });
       
+      if (response.status === 401 || response.status === 403) {
+        // Token has expired or is invalid. Reset it.
+        setGoogleAccessToken(null);
+        throw new Error('인증 세션이 만료되었거나 권한이 없습니다. 다시 구글 드라이브 연동을 진행해 주세요.');
+      }
+      
       if (!response.ok) {
         throw new Error(`Google API returned status: ${response.status}`);
       }

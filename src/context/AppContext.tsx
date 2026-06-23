@@ -73,7 +73,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('rehab_user', JSON.stringify(user));
   };
 
-  const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(null);
+  const [googleAccessToken, setGoogleAccessTokenState] = useState<string | null>(() => {
+    return localStorage.getItem('google_access_token');
+  });
+
+  const setGoogleAccessToken = (token: string | null) => {
+    setGoogleAccessTokenState(token);
+    if (token) {
+      localStorage.setItem('google_access_token', token);
+    } else {
+      localStorage.removeItem('google_access_token');
+    }
+  };
+
   const [googleClientId, setGoogleClientIdState] = useState<string>(() => localStorage.getItem('google_client_id') || '');
   const [googleApiKey, setGoogleApiKeyState] = useState<string>(() => localStorage.getItem('google_api_key') || '');
 
@@ -140,6 +152,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.removeItem('rehab_approvals');
       localStorage.removeItem('rehab_ocr');
       localStorage.removeItem('rehab_corporations');
+      localStorage.removeItem('google_access_token');
       localStorage.setItem('rehab_dummy_cleared_v5', 'true');
       
       setProperties([]);
