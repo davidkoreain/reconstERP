@@ -71,3 +71,21 @@ export default defineConfig([
   },
 ])
 ```
+
+---
+
+## 🤖 AI Coding & Automatic Deployment Rules
+
+This project has **Vercel Continuous Deployment** linked directly to the main branch on GitHub (`https://github.com/davidkoreain/reconstERP`).
+
+### Mandatory Rule for Coding Assistants
+Whenever any file is modified, added, or deleted:
+1. Ensure the build compiles successfully: `npm run build`.
+2. Automatically stage, commit, and push the code:
+   ```bash
+   git add .
+   git commit -m "feat/fix/chore: descriptive message of the changes made"
+   git push origin main
+   ```
+3. **DO NOT** wait for the user to ask you to push. Push changes immediately as the final step of any implementation.
+

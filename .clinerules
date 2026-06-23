@@ -1,0 +1,19 @@
+# AI Coding Assistant Workspace Rules
+
+## Git & Deployment Automation Rule (CRITICAL)
+
+The user has configured automatic CD (Continuous Deployment) via Vercel linked to the GitHub repository `https://github.com/davidkoreain/reconstERP.git` on the `main` branch.
+
+### Mandatory Workflow:
+1. Whenever you modify, add, or delete any file in this repository:
+   - Perform any necessary verification (e.g., run `npm run build` to ensure type checking and build pass).
+   - Once verified, you **MUST** immediately stage, commit, and push the changes to GitHub.
+   
+2. Execution commands to run:
+   - `git add .`
+   - `git commit -m "feat/fix/chore: descriptive message of the changes made"`
+   - `git push origin main`
+
+3. **IMPORTANT**: Do NOT wait for the user to explicitly ask you to push. This must happen automatically at the end of every feature addition, bug fix, or workspace modification task.
+
+4. If you have multiple steps or files to modify, you may make multiple atomic commits or push them all at once at the end of your modifications, but you must push before concluding your response.
