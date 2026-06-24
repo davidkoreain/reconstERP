@@ -117,6 +117,20 @@ export interface OCRDocument {
   };
 }
 
+export interface FinancialStatement {
+  id: string;
+  corporationId: string;
+  fiscalYear: string;           // 회계연도 (예: "2024")
+  revenue?: number;             // 매출액
+  operatingIncome?: number;     // 영업이익
+  netIncome?: number;           // 당기순이익
+  totalAssets?: number;         // 자산총계
+  totalLiabilities?: number;    // 부채총계
+  equity?: number;              // 자본총계
+  documentUrl?: string;         // Supabase Storage PDF URL
+  createdAt?: string;
+}
+
 export interface User {
   id: string;
   name: string;

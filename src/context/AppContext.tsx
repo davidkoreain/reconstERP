@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import type {
   Property, Expense, Investor, ApprovalItem, Transaction,
-  OCRDocument, User, Corporation, OCRDocType
+  OCRDocument, User, Corporation, OCRDocType, FinancialStatement
 } from '../types';
 
 // ─── Row mappers (snake_case DB → camelCase TS) ───────────────────────────
@@ -113,6 +113,20 @@ const mapUser = (r: Record<string, unknown>): User => ({
   position: r.position as string,
 });
 
+const mapFinancialStatement = (r: Record<string, unknown>): FinancialStatement => ({
+  id: r.id as string,
+  corporationId: r.corporation_id as string,
+  fiscalYear: r.fiscal_year as string,
+  revenue: r.revenue as number | undefined,
+  operatingIncome: r.operating_income as number | undefined,
+  netIncome: r.net_income as number | undefined,
+  totalAssets: r.total_assets as number | undefined,
+  totalLiabilities: r.total_liabilities as number | undefined,
+  equity: r.equity as number | undefined,
+  documentUrl: r.document_url as string | undefined,
+  createdAt: r.created_at as string | undefined,
+});
+
 // ─── Context Type ──────────────────────────────────────────────────────────
 
 interface AppContextType {
@@ -128,6 +142,9 @@ interface AppContextType {
   corporations: Corporation[];
   addCorporation: (corp: Omit<Corporation, 'id'>) => void;
   updateCorporation: (corp: Corporation) => void;
+  financialStatements: FinancialStatement[];
+  addFinancialStatement: (data: Omit<FinancialStatement, 'id' | 'createdAt'>) => Promise<void>;
+  deleteFinancialStatement: (id: string) => Promise<void>;
   googleAccessToken: string | null;
   setGoogleAccessToken: (token: string | null) => void;
   googleClientId: string;
@@ -169,6 +186,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [approvalItems, setApprovalItems] = useState<ApprovalItem[]>([]);
   const [ocrDocuments, setOcrDocuments] = useState<OCRDocument[]>([]);
+  const [financialStatements, setFinancialStatements] = useState<FinancialStatement[]>([]);
 
   // Google OAuth (still local – doesn't need DB)
   const [googleAccessToken, setGoogleAccessTokenState] = useState<string | null>(
@@ -200,6 +218,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       { data: txs },
       { data: apprs },
       { data: ocrs },
+      { data: fss },
     ] = await Promise.all([
       supabase.from('profiles').select('*'),
       supabase.from('corporations').select('*').order('created_at'),
@@ -209,6 +228,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       supabase.from('transactions').select('*').order('date'),
       supabase.from('approval_items').select('*').order('created_at', { ascending: false }),
       supabase.from('ocr_documents').select('*').order('created_at', { ascending: false }),
+      supabase.from('financial_statements').select('*').order('fiscal_year', { ascending: false }),
     ]);
 
     const mappedUsers = (profs ?? []).map(r => mapUser(r as Record<string, unknown>));
@@ -225,6 +245,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTransactions((txs ?? []).map(r => mapTransaction(r as Record<string, unknown>)));
     setApprovalItems((apprs ?? []).map(r => mapApproval(r as Record<string, unknown>)));
     setOcrDocuments((ocrs ?? []).map(r => mapOcr(r as Record<string, unknown>)));
+    setFinancialStatements((fss ?? []).map(r => mapFinancialStatement(r as Record<string, unknown>)));
     setDbLoading(false);
   }, [authUser?.id]);
 
@@ -253,6 +274,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     await supabase.from('corporations').update(row).eq('id', corp.id);
     setCorporations(prev => prev.map(c => c.id === corp.id ? corp : c));
+  };
+
+  // ─── Financial Statements ─────────────────────────────────────────────
+  const addFinancialStatement = async (data: Omit<FinancialStatement, 'id' | 'createdAt'>) => {
+    const row = {
+      corporation_id: data.corporationId,
+      fiscal_year: data.fiscalYear,
+      revenue: data.revenue ?? null,
+      operating_income: data.operatingIncome ?? null,
+      net_income: data.netIncome ?? null,
+      total_assets: data.totalAssets ?? null,
+      total_liabilities: data.totalLiabilities ?? null,
+      equity: data.equity ?? null,
+      document_url: data.documentUrl ?? null,
+    };
+    const { data: inserted } = await supabase.from('financial_statements').insert(row).select().single();
+    if (inserted) setFinancialStatements(prev => [mapFinancialStatement(inserted as Record<string, unknown>), ...prev]);
+  };
+
+  const deleteFinancialStatement = async (id: string) => {
+    await supabase.from('financial_statements').delete().eq('id', id);
+    setFinancialStatements(prev => prev.filter(fs => fs.id !== id));
   };
 
   // ─── Properties ───────────────────────────────────────────────────────
@@ -546,6 +589,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider value={{
       properties, expenses, investors, transactions, approvalItems, ocrDocuments,
       users, currentUser, setCurrentUser, corporations, addCorporation, updateCorporation,
+      financialStatements, addFinancialStatement, deleteFinancialStatement,
       googleAccessToken, setGoogleAccessToken, googleClientId, setGoogleClientId, googleApiKey, setGoogleApiKey,
       addProperty, updateProperty, deleteProperty,
       addExpense, submitExpenseForApproval, deleteExpense,
